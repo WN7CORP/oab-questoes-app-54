@@ -3,15 +3,17 @@ import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Scale, BookOpen, Trophy, Users, Award, TrendingUp, Clock, Star, CheckCircle2, Play } from 'lucide-react';
+import { Scale, BookOpen, Trophy, Users, Award, TrendingUp, Clock, Star, CheckCircle2, Play, Unlock } from 'lucide-react';
+import HowItWorksSection from './HowItWorksSection';
 
 interface EnhancedWelcomeScreenProps {
   onStartDemo: () => void;
   onStartOnboarding: () => void;
   onSkipToApp: () => void;
+  onStartFreeExploration?: () => void;
 }
 
-const EnhancedWelcomeScreen = ({ onStartDemo, onStartOnboarding, onSkipToApp }: EnhancedWelcomeScreenProps) => {
+const EnhancedWelcomeScreen = ({ onStartDemo, onStartOnboarding, onSkipToApp, onStartFreeExploration }: EnhancedWelcomeScreenProps) => {
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
 
   const testimonials = [
@@ -101,8 +103,19 @@ const EnhancedWelcomeScreen = ({ onStartDemo, onStartOnboarding, onSkipToApp }: 
             >
               <Play size={24} />
               Experimentar Grátis
-              <Badge className="bg-green-600 text-white ml-2">Sem cadastro</Badge>
+              <Badge className="bg-green-600 text-white ml-2">1 Questão</Badge>
             </Button>
+            
+            {onStartFreeExploration && (
+              <Button 
+                onClick={onStartFreeExploration}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-6 text-lg font-semibold rounded-lg transition-all duration-200 hover:scale-105 flex items-center gap-3"
+              >
+                <Unlock size={24} />
+                Explorar Gratuitamente
+                <Badge className="bg-orange-600 text-white ml-2">3 Questões</Badge>
+              </Button>
+            )}
             
             <Button 
               onClick={onStartOnboarding}
@@ -114,6 +127,9 @@ const EnhancedWelcomeScreen = ({ onStartDemo, onStartOnboarding, onSkipToApp }: 
           </div>
         </div>
       </div>
+
+      {/* How It Works Section */}
+      <HowItWorksSection onStartDemo={onStartDemo} />
 
       {/* Features Section */}
       <div className="px-6 py-12 bg-netflix-card/30">

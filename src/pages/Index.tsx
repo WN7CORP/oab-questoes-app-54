@@ -8,6 +8,8 @@ import WelcomeScreen from '@/components/WelcomeScreen';
 import EnhancedWelcomeScreen from '@/components/onboarding/EnhancedWelcomeScreen';
 import OnboardingOverlay from '@/components/onboarding/OnboardingOverlay';
 import FirstQuestionDemo from '@/components/onboarding/FirstQuestionDemo';
+import FreeExplorationMode from '@/components/onboarding/FreeExplorationMode';
+import FirstTimeTooltips from '@/components/onboarding/FirstTimeTooltips';
 import HomeSection from '@/components/HomeSection';
 import StudyAreas from '@/components/StudyAreas';
 import SearchSection from '@/components/SearchSection';
@@ -19,6 +21,8 @@ const Index = () => {
   const [showWelcome, setShowWelcome] = useState(true);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showFirstQuestion, setShowFirstQuestion] = useState(false);
+  const [showFreeExploration, setShowFreeExploration] = useState(false);
+  const [showTooltips, setShowTooltips] = useState(false);
   const [user, setUser] = useState(null);
   const [hideNavigation, setHideNavigation] = useState(false);
   const [hasSeenOnboarding, setHasSeenOnboarding] = useState(false);
@@ -38,6 +42,12 @@ const Index = () => {
     // Check if user has seen onboarding
     const onboardingSeen = localStorage.getItem('oab-onboarding-completed');
     setHasSeenOnboarding(!!onboardingSeen);
+
+    // Check if user should see tooltips (first time after onboarding)
+    const tooltipsSeen = localStorage.getItem('oab-tooltips-seen');
+    if (onboardingSeen && !tooltipsSeen) {
+      setShowTooltips(true);
+    }
 
     return () => subscription.unsubscribe();
   }, []);
@@ -74,6 +84,11 @@ const Index = () => {
     setShowFirstQuestion(true);
   };
 
+  const handleStartFreeExploration = () => {
+    setShowWelcome(false);
+    setShowFreeExploration(true);
+  };
+
   const handleStartOnboarding = () => {
     setShowWelcome(false);
     setShowOnboarding(true);
@@ -83,18 +98,33 @@ const Index = () => {
     setShowWelcome(false);
     localStorage.setItem('oab-onboarding-completed', 'true');
     setHasSeenOnboarding(true);
+    // Show tooltips for first-time users who skip onboarding
+    const tooltipsSeen = localStorage.getItem('oab-tooltips-seen');
+    if (!tooltipsSeen) {
+      setShowTooltips(true);
+    }
   };
 
   const handleOnboardingComplete = () => {
     setShowOnboarding(false);
     localStorage.setItem('oab-onboarding-completed', 'true');
     setHasSeenOnboarding(true);
+    // Show tooltips after onboarding
+    const tooltipsSeen = localStorage.getItem('oab-tooltips-seen');
+    if (!tooltipsSeen) {
+      setShowTooltips(true);
+    }
   };
 
   const handleOnboardingSkip = () => {
     setShowOnboarding(false);
     localStorage.setItem('oab-onboarding-completed', 'true');
     setHasSeenOnboarding(true);
+    // Show tooltips for users who skip onboarding
+    const tooltipsSeen = localStorage.getItem('oab-tooltips-seen');
+    if (!tooltipsSeen) {
+      setShowTooltips(true);
+    }
   };
 
   const handleFirstQuestionComplete = (wasCorrect: boolean) => {
@@ -102,13 +132,44 @@ const Index = () => {
     localStorage.setItem('oab-onboarding-completed', 'true');
     setHasSeenOnboarding(true);
     
-    // Opcionalmente, mostrar uma celebração ou toast baseado no resultado
+    // Optionally, show a celebration or toast based on the result
     if (wasCorrect) {
       console.log('🎉 Primeira questão correta!');
     } else {
       console.log('📚 Primeira questão - vamos aprender mais!');
     }
   };
+
+  const handleTooltipsComplete = () => {
+    setShowTooltips(false);
+    localStorage.setItem('oab-tooltips-seen', 'true');
+  };
+
+  const handleTooltipsSkip = () => {
+    setShowTooltips(false);
+    localStorage.setItem('oab-tooltips-seen', 'true');
+  };
+
+  const handleFreeExplorationUpgrade = () => {
+    setShowFreeExploration(false);
+    // Here you would typically redirect to pricing/subscription page
+    console.log('Upgrade to premium');
+  };
+
+  const handleFreeExplorationExit = () => {
+    setShowFreeExploration(false);
+    setShowWelcome(true);
+  };
+
+  // Show free exploration mode
+  if (showFreeExploration) {
+    return (
+      <FreeExplorationMode
+        onUpgrade={handleFreeExplorationUpgrade}
+        onExit={handleFreeExplorationExit}
+      />
+    );
+  }
 
   // Show enhanced welcome screen for new users
   if (showWelcome && !hasSeenOnboarding) {
@@ -144,6 +205,13 @@ const Index = () => {
         onComplete={handleOnboardingComplete}
         onSkip={handleOnboardingSkip}
         steps={onboardingSteps}
+      />
+
+      {/* First Time Tooltips */}
+      <FirstTimeTooltips
+        isVisible={showTooltips}
+        onComplete={handleTooltipsComplete}
+        onSkip={handleTooltipsSkip}
       />
 
       <Tabs defaultValue="home" className="h-screen flex flex-col">

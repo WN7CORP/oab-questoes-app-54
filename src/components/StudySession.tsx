@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { Question } from '@/types/question';
 import { transformSupabaseToQuestions } from '@/utils/questionTransform';
@@ -182,7 +183,6 @@ const StudySession = ({
   }
 
   const currentQuestion = questions[currentQuestionIndex];
-  const percentageCorrect = sessionStats.total > 0 ? Math.round((sessionStats.correct / sessionStats.total) * 100) : 0;
 
   return (
     <div className="flex flex-col h-full">
