@@ -5,6 +5,9 @@ import { Home, Search, BarChart3, User, BookOpen, Trophy } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
 import WelcomeScreen from '@/components/WelcomeScreen';
+import EnhancedWelcomeScreen from '@/components/onboarding/EnhancedWelcomeScreen';
+import OnboardingOverlay from '@/components/onboarding/OnboardingOverlay';
+import FirstQuestionDemo from '@/components/onboarding/FirstQuestionDemo';
 import HomeSection from '@/components/HomeSection';
 import StudyAreas from '@/components/StudyAreas';
 import SearchSection from '@/components/SearchSection';
@@ -14,8 +17,11 @@ import SimuladoSection from '@/components/SimuladoSection';
 
 const Index = () => {
   const [showWelcome, setShowWelcome] = useState(true);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showFirstQuestion, setShowFirstQuestion] = useState(false);
   const [user, setUser] = useState(null);
   const [hideNavigation, setHideNavigation] = useState(false);
+  const [hasSeenOnboarding, setHasSeenOnboarding] = useState(false);
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -29,15 +35,117 @@ const Index = () => {
       setUser(session?.user ?? null);
     });
 
+    // Check if user has seen onboarding
+    const onboardingSeen = localStorage.getItem('oab-onboarding-completed');
+    setHasSeenOnboarding(!!onboardingSeen);
+
     return () => subscription.unsubscribe();
   }, []);
 
-  if (showWelcome) {
+  const onboardingSteps = [
+    {
+      id: 'welcome',
+      title: 'Bem-vindo ao OAB Questões!',
+      description: 'Sua plataforma completa para preparação do exame da OAB. Vamos fazer um tour rápido pelas principais funcionalidades.',
+      icon: <Home size={24} />
+    },
+    {
+      id: 'questions',
+      title: 'Questões Comentadas',
+      description: 'Acesse milhares de questões de exames anteriores, todas com comentários detalhados para maximizar seu aprendizado.',
+      icon: <BookOpen size={24} />
+    },
+    {
+      id: 'simulados',
+      title: 'Simulados Completos',
+      description: 'Pratique com simulados cronometrados que reproduzem fielmente as condições do exame oficial.',
+      icon: <Trophy size={24} />
+    },
+    {
+      id: 'progress',
+      title: 'Acompanhe seu Progresso',
+      description: 'Visualize seu desempenho, identifique pontos fracos e acompanhe sua evolução em tempo real.',
+      icon: <BarChart3 size={24} />
+    }
+  ];
+
+  const handleStartDemo = () => {
+    setShowWelcome(false);
+    setShowFirstQuestion(true);
+  };
+
+  const handleStartOnboarding = () => {
+    setShowWelcome(false);
+    setShowOnboarding(true);
+  };
+
+  const handleSkipToApp = () => {
+    setShowWelcome(false);
+    localStorage.setItem('oab-onboarding-completed', 'true');
+    setHasSeenOnboarding(true);
+  };
+
+  const handleOnboardingComplete = () => {
+    setShowOnboarding(false);
+    localStorage.setItem('oab-onboarding-completed', 'true');
+    setHasSeenOnboarding(true);
+  };
+
+  const handleOnboardingSkip = () => {
+    setShowOnboarding(false);
+    localStorage.setItem('oab-onboarding-completed', 'true');
+    setHasSeenOnboarding(true);
+  };
+
+  const handleFirstQuestionComplete = (wasCorrect: boolean) => {
+    setShowFirstQuestion(false);
+    localStorage.setItem('oab-onboarding-completed', 'true');
+    setHasSeenOnboarding(true);
+    
+    // Opcionalmente, mostrar uma celebração ou toast baseado no resultado
+    if (wasCorrect) {
+      console.log('🎉 Primeira questão correta!');
+    } else {
+      console.log('📚 Primeira questão - vamos aprender mais!');
+    }
+  };
+
+  // Show enhanced welcome screen for new users
+  if (showWelcome && !hasSeenOnboarding) {
+    return (
+      <EnhancedWelcomeScreen 
+        onStartDemo={handleStartDemo}
+        onStartOnboarding={handleStartOnboarding}
+        onSkipToApp={handleSkipToApp}
+      />
+    );
+  }
+
+  // Show first question demo
+  if (showFirstQuestion) {
+    return (
+      <FirstQuestionDemo
+        onComplete={handleFirstQuestionComplete}
+        onSkip={() => setShowFirstQuestion(false)}
+      />
+    );
+  }
+
+  // Show original welcome screen for returning users
+  if (showWelcome && hasSeenOnboarding) {
     return <WelcomeScreen onStart={() => setShowWelcome(false)} />;
   }
 
   return (
     <div className="min-h-screen bg-netflix-black text-white">
+      {/* Onboarding Overlay */}
+      <OnboardingOverlay
+        isVisible={showOnboarding}
+        onComplete={handleOnboardingComplete}
+        onSkip={handleOnboardingSkip}
+        steps={onboardingSteps}
+      />
+
       <Tabs defaultValue="home" className="h-screen flex flex-col">
         {/* Desktop Navigation - Horizontal Top Bar */}
         {!isMobile ? (
