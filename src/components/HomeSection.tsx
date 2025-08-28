@@ -8,6 +8,7 @@ import QuestionsSection from './QuestionsSection';
 import DailyChallenge from './DailyChallenge';
 import OabTipsCarousel from './OabTipsCarousel';
 import { useToast } from "@/hooks/use-toast";
+
 interface Question {
   id: number;
   ano: string;
@@ -23,12 +24,12 @@ interface Question {
   justificativa: string;
   banca: string;
 }
+
 interface HomeSectionProps {
   onHideNavigation?: (hide: boolean) => void;
 }
-const HomeSection = ({
-  onHideNavigation
-}: HomeSectionProps) => {
+
+const HomeSection = ({ onHideNavigation }: HomeSectionProps) => {
   const [showQuestions, setShowQuestions] = useState(false);
   const [selectedArea, setSelectedArea] = useState<string>('');
   const [showRandomQuestions, setShowRandomQuestions] = useState(false);
@@ -39,23 +40,24 @@ const HomeSection = ({
     totalAreas: 0,
     totalExams: 0
   });
-  const {
-    toast
-  } = useToast();
+  const { toast } = useToast();
+
   useEffect(() => {
     fetchStats();
   }, []);
+
   const fetchStats = async () => {
     try {
-      const {
-        data,
-        error
-      } = await supabase.from('Questoes_Comentadas').select('area, exame, ano');
+      const { data, error } = await supabase
+        .from('Questoes_Comentadas')
+        .select('area, exame, ano');
+      
       if (error) {
         console.error('Error fetching stats:', error);
       } else {
         const uniqueAreas = new Set(data?.map(item => item.area).filter(Boolean));
         const uniqueExams = new Set(data?.map(item => `${item.exame}-${item.ano}`).filter(item => !item.includes('null')));
+        
         setStats({
           totalQuestions: data?.length || 0,
           totalAreas: uniqueAreas.size,
@@ -66,6 +68,7 @@ const HomeSection = ({
       console.error('Error:', error);
     }
   };
+
   const handleAreaSelect = (area: string) => {
     setSelectedArea(area);
     setShowQuestions(true);
@@ -73,6 +76,7 @@ const HomeSection = ({
     setShowSimulado(false);
     setShowDailyChallenge(false);
   };
+
   const handleRandomQuestions = () => {
     setSelectedArea('');
     setShowRandomQuestions(true);
@@ -80,12 +84,14 @@ const HomeSection = ({
     setShowSimulado(false);
     setShowDailyChallenge(false);
   };
+
   const handleSimuladoAccess = () => {
     setShowSimulado(true);
     setShowQuestions(false);
     setShowRandomQuestions(false);
     setShowDailyChallenge(false);
   };
+
   const handleDailyChallenge = () => {
     setShowDailyChallenge(true);
     setShowQuestions(true);
@@ -93,6 +99,7 @@ const HomeSection = ({
     setShowSimulado(false);
     setSelectedArea('');
   };
+
   const handleBackToHome = () => {
     setShowQuestions(false);
     setShowRandomQuestions(false);
@@ -103,10 +110,20 @@ const HomeSection = ({
       onHideNavigation(false);
     }
   };
-  const popularAreas = ['Direito Constitucional', 'Direito Civil', 'Direito Penal', 'Direito Processual Civil', 'Direito do Trabalho', 'Direito Administrativo'];
+
+  const popularAreas = [
+    'Direito Constitucional', 
+    'Direito Civil', 
+    'Direito Penal', 
+    'Direito Processual Civil', 
+    'Direito do Trabalho', 
+    'Direito Administrativo'
+  ];
+
   if (showQuestions && !showSimulado) {
-    return <div className="h-full overflow-y-auto bg-netflix-black">
-        <div className="p-6 px-[6px]">
+    return (
+      <div className="h-full">
+        <div className="p-6">
           <div className="flex items-center gap-4 mb-6 p-4 rounded-lg bg-gray-800 border-l-4 border-netflix-red animate-fade-in">
             <button 
               onClick={handleBackToHome} 
@@ -115,7 +132,9 @@ const HomeSection = ({
               ← Voltar ao Início
             </button>
             <h1 className="text-2xl font-bold text-white">
-              {showDailyChallenge ? 'Desafio Diário - 20 Questões' : showRandomQuestions ? 'Questões Aleatórias' : `Estudando: ${selectedArea}`}
+              {showDailyChallenge ? 'Desafio Diário - 20 Questões' : 
+               showRandomQuestions ? 'Questões Aleatórias' : 
+               `Estudando: ${selectedArea}`}
             </h1>
           </div>
           
@@ -126,56 +145,57 @@ const HomeSection = ({
             onHideNavigation={onHideNavigation} 
           />
         </div>
-      </div>;
+      </div>
+    );
   }
-  return <div className="h-full overflow-y-auto bg-netflix-black">
+
+  return (
+    <div className="space-y-6">
       {/* Hero Section */}
-      <div className="relative p-6 pb-8 animate-fade-in">
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="bg-netflix-red rounded-full p-3 transition-transform duration-200 hover:scale-110">
-              <Award className="text-white" size={32} />
-            </div>
-            <h1 className="text-4xl sm:text-5xl font-bold text-white">
-              OAB Questões
-            </h1>
+      <div className="text-center space-y-4 animate-fade-in">
+        <div className="flex items-center justify-center gap-3 mb-4">
+          <div className="bg-netflix-red rounded-full p-3 transition-transform duration-200 hover:scale-110">
+            <Award className="text-white" size={32} />
           </div>
-          <p className="text-xl text-netflix-text-secondary mb-8 max-w-2xl mx-auto">
-            Prepare-se para o Exame da OAB com questões comentadas, simulados reais e conteúdo atualizado
-          </p>
-          
-          {/* Quick Stats */}
-          <div className="grid grid-cols-3 gap-4 mb-8">
-            <div className="bg-netflix-card border border-netflix-border rounded-lg p-4 transition-all duration-200 hover:scale-105">
-              <div className="text-2xl font-bold text-netflix-red mb-1">
-                {stats.totalQuestions.toLocaleString()}
-              </div>
-              <div className="text-sm text-netflix-text-secondary">
-                Questões Disponíveis
-              </div>
+          <h1 className="text-4xl sm:text-5xl font-bold text-white">
+            OAB Questões
+          </h1>
+        </div>
+        <p className="text-xl text-netflix-text-secondary mb-8 max-w-2xl mx-auto">
+          Prepare-se para o Exame da OAB com questões comentadas, simulados reais e conteúdo atualizado
+        </p>
+        
+        {/* Quick Stats */}
+        <div className="grid grid-cols-3 gap-4 mb-8">
+          <div className="bg-netflix-card border border-netflix-border rounded-lg p-4 transition-all duration-200 hover:scale-105">
+            <div className="text-2xl font-bold text-netflix-red mb-1">
+              {stats.totalQuestions.toLocaleString()}
             </div>
-            <div className="bg-netflix-card border border-netflix-border rounded-lg p-4 transition-all duration-200 hover:scale-105">
-              <div className="text-2xl font-bold text-green-400 mb-1">
-                {stats.totalAreas}
-              </div>
-              <div className="text-sm text-netflix-text-secondary">
-                Áreas do Direito
-              </div>
+            <div className="text-sm text-netflix-text-secondary">
+              Questões Disponíveis
             </div>
-            <div className="bg-netflix-card border border-netflix-border rounded-lg p-4 transition-all duration-200 hover:scale-105">
-              <div className="text-2xl font-bold text-blue-400 mb-1">
-                {stats.totalExams}
-              </div>
-              <div className="text-sm text-netflix-text-secondary">
-                Exames Passados
-              </div>
+          </div>
+          <div className="bg-netflix-card border border-netflix-border rounded-lg p-4 transition-all duration-200 hover:scale-105">
+            <div className="text-2xl font-bold text-green-400 mb-1">
+              {stats.totalAreas}
+            </div>
+            <div className="text-sm text-netflix-text-secondary">
+              Áreas do Direito
+            </div>
+          </div>
+          <div className="bg-netflix-card border border-netflix-border rounded-lg p-4 transition-all duration-200 hover:scale-105">
+            <div className="text-2xl font-bold text-blue-400 mb-1">
+              {stats.totalExams}
+            </div>
+            <div className="text-sm text-netflix-text-secondary">
+              Exames Passados
             </div>
           </div>
         </div>
       </div>
 
       {/* Daily Challenge Section */}
-      <div className="mb-8 px-[5px] animate-fade-in" style={{ animationDelay: '100ms' }}>
+      <div className="animate-fade-in" style={{ animationDelay: '100ms' }}>
         <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
           <Zap className="text-orange-500" size={28} />
           Desafio Diário
@@ -184,7 +204,7 @@ const HomeSection = ({
       </div>
 
       {/* OAB Tips Carousel */}
-      <div className="mb-8 px-[7px] animate-fade-in" style={{ animationDelay: '200ms' }}>
+      <div className="animate-fade-in" style={{ animationDelay: '200ms' }}>
         <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
           <Scale className="text-blue-500" size={28} />
           Dicas para o Sucesso na OAB
@@ -193,7 +213,7 @@ const HomeSection = ({
       </div>
 
       {/* Main Study Options */}
-      <div className="px-6 mb-8 animate-fade-in" style={{ animationDelay: '300ms' }}>
+      <div className="animate-fade-in" style={{ animationDelay: '300ms' }}>
         <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
           <Target className="text-netflix-red" size={28} />
           Como você quer estudar hoje?
@@ -215,14 +235,23 @@ const HomeSection = ({
               Escolha uma área do direito e pratique questões específicas para fortalecer seus conhecimentos.
             </p>
             <div className="flex flex-wrap gap-2">
-              {popularAreas.slice(0, 3).map(area => <button key={area} onClick={() => handleAreaSelect(area)} className="bg-blue-600/20 hover:bg-blue-600/40 text-blue-200 px-3 py-1 rounded-full text-xs transition-colors">
+              {popularAreas.slice(0, 3).map(area => (
+                <button 
+                  key={area} 
+                  onClick={() => handleAreaSelect(area)} 
+                  className="bg-blue-600/20 hover:bg-blue-600/40 text-blue-200 px-3 py-1 rounded-full text-xs transition-colors"
+                >
                   {area}
-                </button>)}
+                </button>
+              ))}
             </div>
           </Card>
 
           {/* Random Questions */}
-          <Card className="bg-gradient-to-br from-green-900/30 to-green-800/20 border-green-700/50 p-6 cursor-pointer hover:scale-[1.02] transition-all duration-300 group hover:shadow-xl" onClick={handleRandomQuestions}>
+          <Card 
+            className="bg-gradient-to-br from-green-900/30 to-green-800/20 border-green-700/50 p-6 cursor-pointer hover:scale-[1.02] transition-all duration-300 group hover:shadow-xl" 
+            onClick={handleRandomQuestions}
+          >
             <div className="flex items-center gap-4 mb-4">
               <div className="bg-green-600 rounded-lg p-3 group-hover:scale-110 transition-transform">
                 <Zap className="text-white" size={24} />
@@ -242,7 +271,10 @@ const HomeSection = ({
           </Card>
 
           {/* Simulado */}
-          <Card className="bg-gradient-to-br from-red-900/30 to-red-800/20 border-red-700/50 p-6 cursor-pointer hover:scale-[1.02] transition-all duration-300 group hover:shadow-xl" onClick={handleSimuladoAccess}>
+          <Card 
+            className="bg-gradient-to-br from-red-900/30 to-red-800/20 border-red-700/50 p-6 cursor-pointer hover:scale-[1.02] transition-all duration-300 group hover:shadow-xl" 
+            onClick={handleSimuladoAccess}
+          >
             <div className="flex items-center gap-4 mb-4">
               <div className="bg-netflix-red rounded-lg p-3 group-hover:scale-110 transition-transform">
                 <Trophy className="text-white" size={24} />
@@ -264,14 +296,17 @@ const HomeSection = ({
       </div>
 
       {/* Special Categories */}
-      <div className="px-6 mb-8 animate-fade-in" style={{ animationDelay: '400ms' }}>
+      <div className="animate-fade-in" style={{ animationDelay: '400ms' }}>
         <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
           <TrendingUp className="text-netflix-red" size={24} />
           Categorias Especiais
         </h2>
         
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="bg-netflix-card border-netflix-border p-4 cursor-pointer hover:bg-gray-800 transition-all duration-200 group hover:scale-105" onClick={() => handleAreaSelect('Ética Profissional')}>
+          <Card 
+            className="bg-netflix-card border-netflix-border p-4 cursor-pointer hover:bg-gray-800 transition-all duration-200 group hover:scale-105" 
+            onClick={() => handleAreaSelect('Ética Profissional')}
+          >
             <div className="flex items-center gap-3">
               <div className="bg-purple-600 rounded-lg p-2 group-hover:scale-110 transition-transform">
                 <Award size={20} />
@@ -283,7 +318,10 @@ const HomeSection = ({
             </div>
           </Card>
 
-          <Card className="bg-netflix-card border-netflix-border p-4 cursor-pointer hover:bg-gray-800 transition-all duration-200 group hover:scale-105" onClick={() => handleAreaSelect('Direito Constitucional')}>
+          <Card 
+            className="bg-netflix-card border-netflix-border p-4 cursor-pointer hover:bg-gray-800 transition-all duration-200 group hover:scale-105" 
+            onClick={() => handleAreaSelect('Direito Constitucional')}
+          >
             <div className="flex items-center gap-3">
               <div className="bg-orange-600 rounded-lg p-2 group-hover:scale-110 transition-transform">
                 <FileText size={20} />
@@ -295,7 +333,10 @@ const HomeSection = ({
             </div>
           </Card>
 
-          <Card className="bg-netflix-card border-netflix-border p-4 cursor-pointer hover:bg-gray-800 transition-all duration-200 group hover:scale-105" onClick={() => handleAreaSelect('Direito Civil')}>
+          <Card 
+            className="bg-netflix-card border-netflix-border p-4 cursor-pointer hover:bg-gray-800 transition-all duration-200 group hover:scale-105" 
+            onClick={() => handleAreaSelect('Direito Civil')}
+          >
             <div className="flex items-center gap-3">
               <div className="bg-cyan-600 rounded-lg p-2 group-hover:scale-110 transition-transform">
                 <Users size={20} />
@@ -307,7 +348,10 @@ const HomeSection = ({
             </div>
           </Card>
 
-          <Card className="bg-netflix-card border-netflix-border p-4 cursor-pointer hover:bg-gray-800 transition-all duration-200 group hover:scale-105" onClick={() => handleAreaSelect('Direito Penal')}>
+          <Card 
+            className="bg-netflix-card border-netflix-border p-4 cursor-pointer hover:bg-gray-800 transition-all duration-200 group hover:scale-105" 
+            onClick={() => handleAreaSelect('Direito Penal')}
+          >
             <div className="flex items-center gap-3">
               <div className="bg-red-600 rounded-lg p-2 group-hover:scale-110 transition-transform">
                 <Target size={20} />
@@ -322,7 +366,7 @@ const HomeSection = ({
       </div>
 
       {/* Quick Access */}
-      <div className="px-6 pb-8 animate-fade-in" style={{ animationDelay: '500ms' }}>
+      <div className="animate-fade-in" style={{ animationDelay: '500ms' }}>
         <div className="bg-gradient-to-r from-netflix-red/20 to-red-800/20 border border-netflix-red/30 rounded-lg p-6 transition-all duration-300 hover:shadow-lg">
           <div className="flex items-center justify-between">
             <div>
@@ -339,6 +383,8 @@ const HomeSection = ({
           </div>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default HomeSection;
