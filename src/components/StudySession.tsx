@@ -203,7 +203,6 @@ const StudySession = ({
       <div className="mb-4">
         <QuestionCard
           question={currentQuestion}
-          totalQuestions={questions.length}
         />
       </div>
 

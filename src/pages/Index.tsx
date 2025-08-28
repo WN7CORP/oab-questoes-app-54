@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Home, Search, BarChart3, User, BookOpen, Trophy } from 'lucide-react';
@@ -10,6 +9,9 @@ import OnboardingOverlay from '@/components/onboarding/OnboardingOverlay';
 import FirstQuestionDemo from '@/components/onboarding/FirstQuestionDemo';
 import FreeExplorationMode from '@/components/onboarding/FreeExplorationMode';
 import FirstTimeTooltips from '@/components/onboarding/FirstTimeTooltips';
+import QuickWinsSystem from '@/components/engagement/QuickWinsSystem';
+import SocialProofBanner from '@/components/engagement/SocialProofBanner';
+import GuidedJourney from '@/components/engagement/GuidedJourney';
 import HomeSection from '@/components/HomeSection';
 import StudyAreas from '@/components/StudyAreas';
 import SearchSection from '@/components/SearchSection';
@@ -26,6 +28,9 @@ const Index = () => {
   const [user, setUser] = useState(null);
   const [hideNavigation, setHideNavigation] = useState(false);
   const [hasSeenOnboarding, setHasSeenOnboarding] = useState(false);
+  const [questionsAnswered, setQuestionsAnswered] = useState(0);
+  const [correctAnswers, setCorrectAnswers] = useState(0);
+  const [hasProfile, setHasProfile] = useState(false);
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -49,8 +54,35 @@ const Index = () => {
       setShowTooltips(true);
     }
 
+    // Load user stats and profile
+    loadUserStats();
+
     return () => subscription.unsubscribe();
   }, []);
+
+  const loadUserStats = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setHasProfile(true);
+        
+        // Load user statistics from sessions
+        const { data: sessions } = await supabase
+          .from('user_study_sessions')
+          .select('*')
+          .eq('user_id', user.id);
+
+        if (sessions) {
+          const totalQuestions = sessions.reduce((sum, session) => sum + session.questions_answered, 0);
+          const totalCorrect = sessions.reduce((sum, session) => sum + session.correct_answers, 0);
+          setQuestionsAnswered(totalQuestions);
+          setCorrectAnswers(totalCorrect);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading user stats:', error);
+    }
+  };
 
   const onboardingSteps = [
     {
@@ -159,6 +191,22 @@ const Index = () => {
   const handleFreeExplorationExit = () => {
     setShowFreeExploration(false);
     setShowWelcome(true);
+  };
+
+  const handleNavigate = (section: string) => {
+    // Map journey actions to actual tab values
+    const sectionMap: Record<string, string> = {
+      'profile': 'profile',
+      'questions': 'areas',
+      'areas': 'areas',
+      'study': 'areas',
+      'advanced': 'performance'
+    };
+    
+    const targetSection = sectionMap[section] || 'home';
+    // Trigger tab change by programmatically clicking the tab
+    const tabElement = document.querySelector(`[value="${targetSection}"]`) as HTMLElement;
+    tabElement?.click();
   };
 
   // Show free exploration mode
@@ -307,8 +355,30 @@ const Index = () => {
         {/* Main Content with responsive padding */}
         <div className={`flex-1 overflow-hidden ${!isMobile ? 'pt-20' : hideNavigation ? 'pt-0' : 'pt-16 sm:pt-20'}`}>
           <TabsContent value="home" className="h-full mt-0">
-            <div className="h-full overflow-y-auto">
+            <div className="h-full overflow-y-auto p-4 space-y-6">
               <HomeSection onHideNavigation={setHideNavigation} />
+              
+              {/* Quick Wins for early engagement */}
+              {questionsAnswered <= 10 && (
+                <QuickWinsSystem 
+                  questionsAnswered={questionsAnswered}
+                  correctAnswers={correctAnswers}
+                />
+              )}
+              
+              {/* Guided Journey for new users */}
+              {questionsAnswered <= 15 && (
+                <GuidedJourney 
+                  questionsAnswered={questionsAnswered}
+                  hasProfile={hasProfile}
+                  onNavigate={handleNavigate}
+                />
+              )}
+              
+              {/* Social Proof Banner */}
+              {questionsAnswered <= 5 && (
+                <SocialProofBanner variant="full" />
+              )}
             </div>
           </TabsContent>
           
