@@ -30,9 +30,9 @@ const Index = () => {
 
 
   return (
-    <div className="min-h-screen bg-netflix-black text-white">
+    <div className="min-h-screen bg-netflix-black text-white smooth-scroll">
 
-      <Tabs defaultValue="home" className="h-screen flex flex-col overflow-hidden">
+      <Tabs defaultValue="home" className="min-h-screen flex flex-col">
         {/* Desktop Navigation - Horizontal Top Bar */}
         {!isMobile ? (
           <div className="bg-netflix-card border-b border-netflix-border px-6 py-4 fixed top-0 z-30 w-full">
@@ -123,28 +123,26 @@ const Index = () => {
         )}
 
         {/* Main Content with responsive padding */}
-        <div className={`flex-1 ${!isMobile ? 'pt-20' : hideNavigation ? 'pt-0' : 'pt-16 sm:pt-20'}`}>
-          <TabsContent value="home" className="h-full mt-0 overflow-hidden">
-            <div className="h-full overflow-y-auto scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
-              <div className="p-4 pb-20">
-                <HomeSection onHideNavigation={setHideNavigation} />
-              </div>
+        <div className={`flex-1 ${!isMobile ? 'pt-20' : hideNavigation ? 'pt-0' : 'pt-16 sm:pt-20'} overflow-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-primary`}>
+          <TabsContent value="home" className="mt-0">
+            <div className="p-4 pb-20">
+              <HomeSection onHideNavigation={setHideNavigation} />
             </div>
           </TabsContent>
           
-          <TabsContent value="simulado" className="h-full mt-0 overflow-hidden">
+          <TabsContent value="simulado" className="mt-0">
             <SimuladoSection onHideNavigation={setHideNavigation} />
           </TabsContent>
           
-          <TabsContent value="areas" className="h-full mt-0 overflow-hidden">
+          <TabsContent value="areas" className="mt-0">
             <StudyAreas onHideNavigation={setHideNavigation} />
           </TabsContent>
           
-          <TabsContent value="performance" className="h-full mt-0 overflow-hidden">
+          <TabsContent value="performance" className="mt-0">
             <PerformanceSection />
           </TabsContent>
           
-          <TabsContent value="profile" className="h-full mt-0 overflow-hidden">
+          <TabsContent value="profile" className="mt-0">
             <ProfileSection />
           </TabsContent>
         </div>

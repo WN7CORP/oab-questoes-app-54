@@ -122,7 +122,7 @@ const HomeSection = ({ onHideNavigation }: HomeSectionProps) => {
 
   if (showQuestions && !showSimulado) {
     return (
-      <div className="h-full">
+      <div>
         <div className="p-6">
           <div className="flex items-center gap-4 mb-6 p-4 rounded-lg bg-gray-800 border-l-4 border-netflix-red animate-fade-in">
             <button 

@@ -173,6 +173,22 @@ export default {
 					},
 					'-ms-overflow-style': 'none',
 					'scrollbar-width': 'none',
+				},
+				'.smooth-scroll': {
+					'scroll-behavior': 'smooth',
+				},
+				'.scrollbar-track-transparent': {
+					'&::-webkit-scrollbar-track': {
+						background: 'transparent',
+					},
+				},
+				'.scrollbar-thumb-primary': {
+					'&::-webkit-scrollbar-thumb': {
+						backgroundColor: 'rgba(229, 9, 20, 0.2)',
+					},
+					'&::-webkit-scrollbar-thumb:hover': {
+						backgroundColor: 'rgba(229, 9, 20, 0.4)',
+					},
 				}
 			});
 		}
