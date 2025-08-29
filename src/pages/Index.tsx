@@ -1,36 +1,17 @@
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Home, Search, BarChart3, User, BookOpen, Trophy } from 'lucide-react';
+import { Home, BarChart3, User, BookOpen, Trophy } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
-import WelcomeScreen from '@/components/WelcomeScreen';
-import EnhancedWelcomeScreen from '@/components/onboarding/EnhancedWelcomeScreen';
-import OnboardingOverlay from '@/components/onboarding/OnboardingOverlay';
-import FirstQuestionDemo from '@/components/onboarding/FirstQuestionDemo';
-import FreeExplorationMode from '@/components/onboarding/FreeExplorationMode';
-import FirstTimeTooltips from '@/components/onboarding/FirstTimeTooltips';
-import QuickWinsSystem from '@/components/engagement/QuickWinsSystem';
-import SocialProofBanner from '@/components/engagement/SocialProofBanner';
-import GuidedJourney from '@/components/engagement/GuidedJourney';
 import HomeSection from '@/components/HomeSection';
 import StudyAreas from '@/components/StudyAreas';
-import SearchSection from '@/components/SearchSection';
 import PerformanceSection from '@/components/PerformanceSection';
 import ProfileSection from '@/components/ProfileSection';
 import SimuladoSection from '@/components/SimuladoSection';
 
 const Index = () => {
-  const [showWelcome, setShowWelcome] = useState(true);
-  const [showOnboarding, setShowOnboarding] = useState(false);
-  const [showFirstQuestion, setShowFirstQuestion] = useState(false);
-  const [showFreeExploration, setShowFreeExploration] = useState(false);
-  const [showTooltips, setShowTooltips] = useState(false);
   const [user, setUser] = useState(null);
   const [hideNavigation, setHideNavigation] = useState(false);
-  const [hasSeenOnboarding, setHasSeenOnboarding] = useState(false);
-  const [questionsAnswered, setQuestionsAnswered] = useState(0);
-  const [correctAnswers, setCorrectAnswers] = useState(0);
-  const [hasProfile, setHasProfile] = useState(false);
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -44,223 +25,12 @@ const Index = () => {
       setUser(session?.user ?? null);
     });
 
-    // Check if user has seen onboarding
-    const onboardingSeen = localStorage.getItem('oab-onboarding-completed');
-    setHasSeenOnboarding(!!onboardingSeen);
-
-    // Check if user should see tooltips (first time after onboarding)
-    const tooltipsSeen = localStorage.getItem('oab-tooltips-seen');
-    if (onboardingSeen && !tooltipsSeen) {
-      setShowTooltips(true);
-    }
-
-    // Load user stats and profile
-    loadUserStats();
-
     return () => subscription.unsubscribe();
   }, []);
 
-  const loadUserStats = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setHasProfile(true);
-        
-        // Load user statistics from sessions
-        const { data: sessions } = await supabase
-          .from('user_study_sessions')
-          .select('*')
-          .eq('user_id', user.id);
-
-        if (sessions) {
-          const totalQuestions = sessions.reduce((sum, session) => sum + session.questions_answered, 0);
-          const totalCorrect = sessions.reduce((sum, session) => sum + session.correct_answers, 0);
-          setQuestionsAnswered(totalQuestions);
-          setCorrectAnswers(totalCorrect);
-        }
-      }
-    } catch (error) {
-      console.error('Error loading user stats:', error);
-    }
-  };
-
-  const onboardingSteps = [
-    {
-      id: 'welcome',
-      title: 'Bem-vindo ao OAB Questões!',
-      description: 'Sua plataforma completa para preparação do exame da OAB. Vamos fazer um tour rápido pelas principais funcionalidades.',
-      icon: <Home size={24} />
-    },
-    {
-      id: 'questions',
-      title: 'Questões Comentadas',
-      description: 'Acesse milhares de questões de exames anteriores, todas com comentários detalhados para maximizar seu aprendizado.',
-      icon: <BookOpen size={24} />
-    },
-    {
-      id: 'simulados',
-      title: 'Simulados Completos',
-      description: 'Pratique com simulados cronometrados que reproduzem fielmente as condições do exame oficial.',
-      icon: <Trophy size={24} />
-    },
-    {
-      id: 'progress',
-      title: 'Acompanhe seu Progresso',
-      description: 'Visualize seu desempenho, identifique pontos fracos e acompanhe sua evolução em tempo real.',
-      icon: <BarChart3 size={24} />
-    }
-  ];
-
-  const handleStartDemo = () => {
-    setShowWelcome(false);
-    setShowFirstQuestion(true);
-  };
-
-  const handleStartFreeExploration = () => {
-    setShowWelcome(false);
-    setShowFreeExploration(true);
-  };
-
-  const handleStartOnboarding = () => {
-    setShowWelcome(false);
-    setShowOnboarding(true);
-  };
-
-  const handleSkipToApp = () => {
-    setShowWelcome(false);
-    localStorage.setItem('oab-onboarding-completed', 'true');
-    setHasSeenOnboarding(true);
-    // Show tooltips for first-time users who skip onboarding
-    const tooltipsSeen = localStorage.getItem('oab-tooltips-seen');
-    if (!tooltipsSeen) {
-      setShowTooltips(true);
-    }
-  };
-
-  const handleOnboardingComplete = () => {
-    setShowOnboarding(false);
-    localStorage.setItem('oab-onboarding-completed', 'true');
-    setHasSeenOnboarding(true);
-    // Show tooltips after onboarding
-    const tooltipsSeen = localStorage.getItem('oab-tooltips-seen');
-    if (!tooltipsSeen) {
-      setShowTooltips(true);
-    }
-  };
-
-  const handleOnboardingSkip = () => {
-    setShowOnboarding(false);
-    localStorage.setItem('oab-onboarding-completed', 'true');
-    setHasSeenOnboarding(true);
-    // Show tooltips for users who skip onboarding
-    const tooltipsSeen = localStorage.getItem('oab-tooltips-seen');
-    if (!tooltipsSeen) {
-      setShowTooltips(true);
-    }
-  };
-
-  const handleFirstQuestionComplete = (wasCorrect: boolean) => {
-    setShowFirstQuestion(false);
-    localStorage.setItem('oab-onboarding-completed', 'true');
-    setHasSeenOnboarding(true);
-    
-    // Optionally, show a celebration or toast based on the result
-    if (wasCorrect) {
-      console.log('🎉 Primeira questão correta!');
-    } else {
-      console.log('📚 Primeira questão - vamos aprender mais!');
-    }
-  };
-
-  const handleTooltipsComplete = () => {
-    setShowTooltips(false);
-    localStorage.setItem('oab-tooltips-seen', 'true');
-  };
-
-  const handleTooltipsSkip = () => {
-    setShowTooltips(false);
-    localStorage.setItem('oab-tooltips-seen', 'true');
-  };
-
-  const handleFreeExplorationUpgrade = () => {
-    setShowFreeExploration(false);
-    // Here you would typically redirect to pricing/subscription page
-    console.log('Upgrade to premium');
-  };
-
-  const handleFreeExplorationExit = () => {
-    setShowFreeExploration(false);
-    setShowWelcome(true);
-  };
-
-  const handleNavigate = (section: string) => {
-    // Map journey actions to actual tab values
-    const sectionMap: Record<string, string> = {
-      'profile': 'profile',
-      'questions': 'areas',
-      'areas': 'areas',
-      'study': 'areas',
-      'advanced': 'performance'
-    };
-    
-    const targetSection = sectionMap[section] || 'home';
-    // Trigger tab change by programmatically clicking the tab
-    const tabElement = document.querySelector(`[value="${targetSection}"]`) as HTMLElement;
-    tabElement?.click();
-  };
-
-  // Show free exploration mode
-  if (showFreeExploration) {
-    return (
-      <FreeExplorationMode
-        onUpgrade={handleFreeExplorationUpgrade}
-        onExit={handleFreeExplorationExit}
-      />
-    );
-  }
-
-  // Show enhanced welcome screen for new users
-  if (showWelcome && !hasSeenOnboarding) {
-    return (
-      <EnhancedWelcomeScreen 
-        onStartDemo={handleStartDemo}
-        onStartOnboarding={handleStartOnboarding}
-        onSkipToApp={handleSkipToApp}
-      />
-    );
-  }
-
-  // Show first question demo
-  if (showFirstQuestion) {
-    return (
-      <FirstQuestionDemo
-        onComplete={handleFirstQuestionComplete}
-        onSkip={() => setShowFirstQuestion(false)}
-      />
-    );
-  }
-
-  // Show original welcome screen for returning users
-  if (showWelcome && hasSeenOnboarding) {
-    return <WelcomeScreen onStart={() => setShowWelcome(false)} />;
-  }
 
   return (
     <div className="min-h-screen bg-netflix-black text-white">
-      {/* Onboarding Overlay */}
-      <OnboardingOverlay
-        isVisible={showOnboarding}
-        onComplete={handleOnboardingComplete}
-        onSkip={handleOnboardingSkip}
-        steps={onboardingSteps}
-      />
-
-      {/* First Time Tooltips */}
-      <FirstTimeTooltips
-        isVisible={showTooltips}
-        onComplete={handleTooltipsComplete}
-        onSkip={handleTooltipsSkip}
-      />
 
       <Tabs defaultValue="home" className="h-screen flex flex-col overflow-hidden">
         {/* Desktop Navigation - Horizontal Top Bar */}
@@ -356,30 +126,8 @@ const Index = () => {
         <div className={`flex-1 ${!isMobile ? 'pt-20' : hideNavigation ? 'pt-0' : 'pt-16 sm:pt-20'}`}>
           <TabsContent value="home" className="h-full mt-0 overflow-hidden">
             <div className="h-full overflow-y-auto scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
-              <div className="p-4 space-y-6 pb-20">
+              <div className="p-4 pb-20">
                 <HomeSection onHideNavigation={setHideNavigation} />
-                
-                {/* Quick Wins for early engagement */}
-                {questionsAnswered <= 10 && (
-                  <QuickWinsSystem 
-                    questionsAnswered={questionsAnswered}
-                    correctAnswers={correctAnswers}
-                  />
-                )}
-                
-                {/* Guided Journey for new users */}
-                {questionsAnswered <= 15 && (
-                  <GuidedJourney 
-                    questionsAnswered={questionsAnswered}
-                    hasProfile={hasProfile}
-                    onNavigate={handleNavigate}
-                  />
-                )}
-                
-                {/* Social Proof Banner */}
-                {questionsAnswered <= 5 && (
-                  <SocialProofBanner variant="full" />
-                )}
               </div>
             </div>
           </TabsContent>
